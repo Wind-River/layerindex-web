@@ -379,7 +379,7 @@ class RecipeSearchView(ListView):
         query_string = self.request.GET.get('q', '')
         init_qs = Recipe.objects.filter(layerbranch__branch__name=self.kwargs['branch'])
         if query_string.strip():
-            entry_query = simplesearch.get_query(query_string, ['pn', 'summary', 'description', 'filename'])
+            entry_query = simplesearch.get_query(query_string, ['pn', 'summary', 'description', 'filename', 'layerbranch__layer__name'])
             qs = init_qs.filter(entry_query).order_by('pn', 'layerbranch__layer')
         else:
             if 'q' in self.request.GET:
