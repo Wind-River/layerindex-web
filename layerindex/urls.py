@@ -22,6 +22,7 @@ router.register(r'layerDependencies', restviews.LayerDependencyViewSet)
 router.register(r'recipes', restviews.RecipeViewSet)
 router.register(r'machines', restviews.MachineViewSet)
 router.register(r'distros', restviews.DistroViewSet)
+router.register(r'wrtemplates', restviews.WRTemplateViewSet)
 
 urlpatterns = patterns('',
     url(r'^$',
@@ -40,6 +41,8 @@ urlpatterns = patterns('',
         RedirectView.as_view(url=reverse_lazy('machine_search', args=('master',)), permanent=False)),
     url(r'^distros/$',
         RedirectView.as_view(url=reverse_lazy('distro_search', args=('master',)), permanent=False)),
+    url(r'^wrtemplates/$',
+        RedirectView.as_view(url=reverse_lazy('wrtemplate_search', args=('master',)), permanent=False)),
  
     url(r'^submit/$', edit_layer_view, {'template_name': 'layerindex/submitlayer.html'}, name="submit_layer"),
     url(r'^submit/thanks$',

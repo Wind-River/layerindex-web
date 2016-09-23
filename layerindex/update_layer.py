@@ -157,6 +157,46 @@ def update_distro_conf_file(path, distro, d):
     else:
         distro.description = desc
 
+def update_wrtemplate(layerbranch, fqfilename, filepath, filename):
+    from layerindex.models import WRTemplate, WRTemplateFile
+    logger.debug("WRTemplate %s for file %s" % (filepath, filename))
+    results = WRTemplate.objects.filter(layerbranch=layerbranch).filter(name=filepath)
+    if results:
+            wrtemplate = results[0]
+    else:
+            wrtemplate = WRTemplate()
+            wrtemplate.layerbranch = layerbranch
+            wrtemplate.name = filepath
+    update_wrtemplate_conf_file(fqfilename, wrtemplate)
+    wrtemplate.save()
+    update_wrtemplate_files(wrtemplate, filename)
+
+def update_wrtemplate_conf_file(path, wrtemplate):
+    desc = None
+    with open(path, 'r') as f:
+        for line in f:
+            if line.startswith('#@NAME:'):
+                desc = line[7:].strip()
+            if line.startswith('#@DESCRIPTION:'):
+                desc = line[14:].strip()
+                desc = re.sub(r'WRTemplate configuration for( running)*( an)*( the)*', '', desc)
+                break
+    if desc:
+        wrtemplate.description = desc
+
+def update_wrtemplate_files(wrtemplate, filename):
+    from layerindex.models import WRTemplate, WRTemplateFile
+    results = WRTemplateFile.objects.filter(wrtemplate=wrtemplate).filter(name=filename)
+
+    if results:
+        wrtemplatefile = results[0]
+    else:
+        wrtemplatefile = WRTemplateFile()
+        wrtemplatefile.wrtemplate = wrtemplate
+        wrtemplatefile.name = filename
+
+    wrtemplatefile.save()
+
 def main():
     if LooseVersion(git.__version__) < '0.3.1':
         logger.error("Version of GitPython is too old, please install GitPython (python-git) 0.3.1 or later in order to use this script")
@@ -206,7 +246,7 @@ def main():
 
     utils.setup_django()
     import settings
-    from layerindex.models import LayerItem, LayerBranch, Recipe, RecipeFileDependency, Machine, Distro, BBAppend, BBClass
+    from layerindex.models import LayerItem, LayerBranch, Recipe, RecipeFileDependency, Machine, Distro, WRTemplate, WRTemplateFile, BBAppend, BBClass
     from django.db import transaction
 
     logger.setLevel(options.loglevel)
@@ -312,6 +352,7 @@ def main():
             layerrecipes = Recipe.objects.filter(layerbranch=layerbranch)
             layermachines = Machine.objects.filter(layerbranch=layerbranch)
             layerdistros = Distro.objects.filter(layerbranch=layerbranch)
+            layerwrtemplates = WRTemplate.objects.filter(layerbranch=layerbranch)
             layerappends = BBAppend.objects.filter(layerbranch=layerbranch)
             layerclasses = BBClass.objects.filter(layerbranch=layerbranch)
             if layerbranch.vcs_last_rev != topcommit.hexsha or options.reload or options.initial:
@@ -450,6 +491,23 @@ def main():
                                     results[0].save()
                                 else:
                                     logger.warn("Renamed distro %s could not be found" % oldpath)
+                            elif oldtypename == 'wrtemplate':
+                                results = layerwrtemplates.filter(name=oldfilepath)
+                                if len(results):
+                                    if results[0] != newfilepath:
+                                        logger.debug("Rename wrtemplate %s to %s" % (results[0], newfilepath))
+                                        results[0].name = newfilepath
+                                        results[0].save()
+                                    results = WRTemplateFile.objects.filter(name=oldfilename).filter(wrtemplate=results[0])
+                                    if len(results):
+                                        logger.debug("Rename wrtemplatefile %s to %s" % (results[0], newfilename))
+                                        results[0].name = newfilename
+                                        results[0].save
+                                    else:
+                                        logger.warn("Renamed wrtemplatefile %s could not be found" % oldfilename)
+                                        other_adds.append(diffitem)
+                                else:
+                                    logger.warn("Renamed wrtemplate %s could not be found" % oldpath)
                                     other_adds.append(diffitem)
                             elif oldtypename == 'bbclass':
                                 results = layerclasses.filter(name=oldfilename)
@@ -491,6 +549,12 @@ def main():
                                 layermachines.filter(name=filename).delete()
                             elif typename == 'distro':
                                 layerdistros.filter(name=filename).delete()
+                            elif typename == 'wrtemplate':
+                                oldwrtemplate = layerwrtemplates.filter(name=filepath)
+                                WRTemplateFile.objects.filter(name=filename).filter(wrtemplate=oldwrtemplate).delete()
+                                values = WRTemplateFile.objects.filter(wrtemplate=oldwrtemplate)
+                                if not len(values):
+                                        oldwrtemplate.delete()
                             elif typename == 'bbclass':
                                 layerclasses.filter(name=filename).delete()
 
@@ -527,6 +591,8 @@ def main():
                                 distro.name = filename
                                 update_distro_conf_file(os.path.join(repodir, path), distro, config_data_copy)
                                 distro.save()
+                            elif typename == 'wrtemplate':
+                                update_wrtemplate(layerbranch, os.path.join(repodir, path), filepath, filename)
                             elif typename == 'bbclass':
                                 bbclass = BBClass()
                                 bbclass.layerbranch = layerbranch
@@ -564,6 +630,8 @@ def main():
                                     distro = results[0]
                                     update_distro_conf_file(os.path.join(repodir, path), distro, config_data_copy)
                                     distro.save()
+                            elif typename == 'wrtemplate':
+                                update_wrtemplate(layerbranch, os.path.join(repodir, path), filepath, filename)
 
                             deps = RecipeFileDependency.objects.filter(layerbranch=layerbranch).filter(path=path)
                             for dep in deps:
@@ -605,6 +673,7 @@ def main():
 
                     layermachines.delete()
                     layerdistros.delete()
+                    layerwrtemplates.delete()
                     layerappends.delete()
                     layerclasses.delete()
                     for root, dirs, files in os.walk(layerdir):
@@ -616,7 +685,7 @@ def main():
                                 dirs.remove(diritem)
                         for f in files:
                             fullpath = os.path.join(root, f)
-                            (typename, _, filename) = recipeparse.detect_file_type(fullpath, layerdir_start)
+                            (typename, filepath, filename) = recipeparse.detect_file_type(fullpath, layerdir_start)
                             if typename == 'recipe':
                                 if fullpath not in layerrecipe_fns:
                                     layerrecipes_add.append(fullpath)
@@ -638,6 +707,8 @@ def main():
                                 distro.name = filename
                                 update_distro_conf_file(fullpath, distro, config_data_copy)
                                 distro.save()
+                            elif typename == 'wrtemplate':
+                                update_wrtemplate(layerbranch, fullpath, filepath, filename)
                             elif typename == 'bbclass':
                                 bbclass = BBClass()
                                 bbclass.layerbranch = layerbranch
