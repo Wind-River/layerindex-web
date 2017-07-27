@@ -67,6 +67,11 @@ Setup instructions:
    production you need to use a proper web server and have DEBUG set
    to False.
 
+   3.1. In order to process asynchronous tasks like sending email,
+        you will need to run a Celery worker:
+
+        celery -A layerindex.tasks worker --loglevel=info
+
 4. You'll need to add at least the openembedded-core layer to the
    database, or some equivalent that contains conf/bitbake.conf for
    the base system configuration. To add this, follow these steps:
