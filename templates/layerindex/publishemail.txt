@@ -1,0 +1,7 @@
+Hi {{ maintainer_name }},
+
+You are listed as a maintainer for the new layer, {{ layer_name }}. This layer has been published. You can view it at the following URL:
+
+ {{ layer_url }}
+
+Thanks!

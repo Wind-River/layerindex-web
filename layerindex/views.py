@@ -5,7 +5,7 @@
 # Licensed under the MIT license, see COPYING.MIT for details
 
 import sys
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, get_list_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseForbidden, Http404
 from django.core.urlresolvers import reverse, reverse_lazy, resolve
 from django.core.exceptions import PermissionDenied
@@ -261,6 +261,21 @@ def _check_url_branch(kwargs):
 def publish(request, name):
     if not (request.user.is_authenticated() and request.user.has_perm('layerindex.publish_layer')):
         raise PermissionDenied
+    from_email = settings.PUBLISH_EMAIL_FROM
+    plaintext = get_template('layerindex/publishemail.txt')
+    layeritem = get_object_or_404(LayerItem, name=name)
+    layerbranch = get_object_or_404(LayerBranch, layer=layeritem)
+    maintainers = get_list_or_404(LayerMaintainer, layerbranch=layerbranch)
+    subject = '%s - %s' % (settings.PUBLISH_EMAIL_SUBJECT, layeritem.name)
+    layer_url = request.build_absolute_uri(reverse('layer_item', args=(layerbranch.branch, layeritem.name)))
+    for m in maintainers:
+        d = Context({
+            'maintainer_name': m.name,
+            'layer_name': layeritem.name,
+            'layer_url': layer_url,
+        })
+        text_content = plaintext.render(d)
+        tasks.send_email.apply_async((subject, text_content, from_email, [m.email]))
     return _statuschange(request, name, 'P')
 
 def _statuschange(request, name, newstatus):
