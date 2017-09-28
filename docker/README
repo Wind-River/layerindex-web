@@ -1,26 +1,30 @@
-## This is set up to make a cluster of three containers. First we build two from the root of the repo.
-docker build -t halstead/layerindex-app .
-docker build -t halstead/layerindex-web -f Dockerfile.web .
+# Layerindex Docker images
 
-## Start a database server. We use MariaDB in production.
-## In order to configure your settings.py file to use this database server, use:
-##   'ENGINE': 'django.db.backends.mysql',
-##   'NAME': 'layersdb',
-##   'USER': 'root',
-##   'PASSWORD': 'testingpw',
-##   'HOST': 'layersdb',
-##   'PORT': '',
-docker run -d --name layerdb -e MYSQL_ROOT_PASSWORD=testingpw -e MYSQL_DATABASE=layersdb mariadb
+The layerindex depends on several pieces of software:
 
-## If you have a copy of the the production data now is the time to insert it.
-## If not you can skip the next step for a clean install.
-xzcat ./layerdb.sql.xz | docker run -i --link layerdb:layersdb --rm mariadb sh -c 'exec mysql -hlayersdb -uroot -p"testingpw" layersdb'
+- A database such as mariadb
+- RabbitMQ as a task queue for Celery
+- A reverse proxy such as Nginx for performance
 
-docker run -d --link layerdb:layersdb --name layersapp halstead/layerindex-app
-docker run -d --link layersapp:layersapp --name layersweb -p 49153:80 halstead/layerindex-web
+The docker-compose.yaml file will start up a full stack of the 4
+containers necessary to simulate a full production system on a single
+machine using docker-compose.
 
-## To apply layerindex migration
-docker run --rm --link layerdb:layersdb halstead/layerindex-app /opt/migrate.sh
+    > docker-compose up --abort-on-container-exit
+    > docker-compose rm --force -v
 
-## To update the layer info we can run the job in a temporary container.
-docker run --rm --link layerdb:layersdb halstead/layerindex-app /opt/updatelayers.sh
+# Building the layerindex image
+
+    > docker build -t yocto/layerindex-app .
+
+# Manual creation of the database
+
+Start a database server. We use MariaDB in production. See
+docker/mariadb_settings.py for an example settings required to connect
+to Mariadb and RabbitMQ
+
+If you have a copy of the the production data now is the time to insert it.
+If not you can skip the next step for a clean install.
+
+    > xzcat ./layerdb.sql.xz | docker run -i --link layerdb:layersdb \
+         --rm mariadb sh -c 'exec mysql -hlayersdb -uroot -p"testingpw" layersdb'
