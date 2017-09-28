@@ -1,8 +1,12 @@
-FROM buildpack-deps:latest
+FROM debian:stretch
 MAINTAINER Michael Halstead <mhalstead@linuxfoundation.org>
 
 EXPOSE 80
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1 \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8 \
+    LC_CTYPE=en_US.UTF-8
+
 ## Uncomment to set proxy ENVVARS within container
 #ENV http_proxy http://your.proxy.server:port
 #ENV https_proxy https://your.proxy.server:port
@@ -11,18 +15,30 @@ ADD requirements.txt /
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-	python-pip \
-	python-mysqldb \
-	python-dev \
-	python-imaging \
-	netcat-openbsd \
-	vim \
+      autoconf \
+      g++ \
+      gcc \
+      make \
+      python3-pip \
+      python3-dev \
+      python3-pil \
+      python3-mysqldb \
+      python3-setuptools \
+      netcat-openbsd \
+      libjpeg-dev \
+      vim git curl locales \
+    && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
+    && locale-gen en_US.UTF-8 \
+    && update-locale \
+    && mkdir /opt/workdir \
+    && pip3 install --upgrade pip && pip3 install wheel gunicorn \
+    && pip3 install -r /requirements.txt \
+    && apt-get purge -y g++ make python3-dev autoconf \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
     && apt-get clean \
-	&& rm -rf /var/lib/apt/lists/* \
-    && pip install gunicorn setuptools wheel \
-    && pip install -r /requirements.txt \
-    && groupadd user && useradd --create-home --home-dir /home/user -g user user \
-    && mkdir /opt/workdir
+    && groupadd user \
+    && useradd --create-home --home-dir /home/user -g user user
 
 # Run gunicorn and celery as unprivileged user
 USER user

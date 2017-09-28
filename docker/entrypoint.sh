@@ -18,11 +18,11 @@ echo "Waiting for database to come online"
 for i in {15..1}; do echo -n "$i." && sleep 1; done; echo
 
 if [ "$LAYERINDEX_INIT" == "yes" ]; then
-    python manage.py migrate
+    python3 manage.py migrate
 fi
 
 if [ -n "$LAYERINDEX_ADMIN" ] && [ -n "$LAYERINDEX_ADMIN_EMAIL" ] && [ -n "$LAYERINDEX_ADMIN_PASS" ]; then
-    echo "from django.contrib.auth.models import User; User.objects.create_superuser('$LAYERINDEX_ADMIN', '$LAYERINDEX_ADMIN_EMAIL', '$LAYERINDEX_ADMIN_PASS')" | python manage.py shell
+    echo "from django.contrib.auth.models import User; User.objects.create_superuser('$LAYERINDEX_ADMIN', '$LAYERINDEX_ADMIN_EMAIL', '$LAYERINDEX_ADMIN_PASS')" | python3 manage.py shell
 fi
 
 # Start Gunicorn
