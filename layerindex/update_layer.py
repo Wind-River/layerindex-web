@@ -145,17 +145,16 @@ def update_distro_conf_file(path, distro, d):
                 desc = re.sub(r'Distribution configuration for( running)*( an)*( the)*', '', desc)
                 break
 
-    distro_name = ''
-    try:
-        d = utils.parse_conf(path, d)
-        distro_name = d.getVar('DISTRO_NAME', True)
-    except Exception as e:
-        logger.warn('Error parsing distro configuration file %s: %s' % (path, str(e)))
-
-    if distro_name:
-        distro.description = distro_name
-    else:
-        distro.description = desc
+    distro.description = desc
+    if not distro.description:
+        distro_name = ''
+        try:
+            d = utils.parse_conf(path, d)
+            distro_name = d.getVar('DISTRO_NAME', True)
+        except Exception as e:
+            logger.warn('Error parsing distro configuration file %s: %s' % (path, str(e)))
+        if distro_name:
+            distro.description = distro_name
 
 def update_wrtemplate(layerbranch, fqfilename, filepath, filename):
     from layerindex.models import WRTemplate, WRTemplateFile
