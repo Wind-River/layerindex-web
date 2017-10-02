@@ -352,9 +352,11 @@ def main():
                     if operator.eq(deps_dict_all_copy, deps_dict_all):
                         logger.error("Cannot find required collections on branch %s:" % branch)
                         for layer, value in deps_dict_all.items():
+                            layerquery_sorted.append(layer)
                             logger.error('%s: %s' % (layer.name, value['requires']))
-                        logger.error("Known collections: %s" % collections_done)
-                        sys.exit(1)
+
+                        logger.warning("Known collections: %s" % collections_done)
+                        break
 
                 for layer in layerquery_sorted:
                     layerupdate = LayerUpdate()
