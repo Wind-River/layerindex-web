@@ -12,10 +12,10 @@ fi
 
 # Start Celery
 /usr/local/bin/celery -A layerindex.tasks worker --loglevel="${CELERY_LOG_LEVEL:-info}" \
-                      --workdir=/opt/layerindex &
+                      --workdir=/opt/layerindex --concurrency="${CELERY_NUM_WORKERS:-4}" &
 
 echo "Waiting for database to come online"
-for i in {15..1}; do echo -n "$i." && sleep 1; done; echo
+for i in $(seq "${DB_WAIT:-10}" -1 1); do echo -n "$i." && sleep 1; done; echo
 
 if [ "$LAYERINDEX_INIT" == "yes" ]; then
     python3 manage.py migrate
@@ -29,4 +29,4 @@ fi
 /usr/local/bin/gunicorn wsgi:application --workers="${GUNICORN_NUM_WORKERS:-4}" \
                         --bind="${GUNICORN_BIND:-:5000}" \
                         --log-level="${GUNICORN_LOG_LEVEL:-debug}" \
-                        --chdir=/opt/layerindex
+                        --chdir=/opt/layerindex --pid=/opt/layerindex/gunicorn.pid

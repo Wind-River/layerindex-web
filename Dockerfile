@@ -40,9 +40,6 @@ RUN apt-get update \
     && groupadd user \
     && useradd --create-home --home-dir /home/user -g user user
 
-# Run gunicorn and celery as unprivileged user
-USER user
-
 ADD . /opt/layerindex
 
 ADD settings.py /opt/layerindex/settings.py
@@ -57,5 +54,12 @@ ADD docker/migrate.sh /opt/migrate.sh
 
 # Add entrypoint to start celery worker and gnuicorn
 ADD docker/entrypoint.sh /entrypoint.sh
+
+RUN mkdir -p /opt/layers && chown -R user:user /opt
+
+VOLUME ['/opt/layers']
+
+# Run gunicorn and celery as unprivileged user
+USER user
 
 ENTRYPOINT ["/entrypoint.sh"]
