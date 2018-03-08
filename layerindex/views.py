@@ -14,6 +14,7 @@ from django.core.urlresolvers import reverse, reverse_lazy, resolve
 from django.core.exceptions import PermissionDenied
 from django.template import RequestContext
 from layerindex.models import Branch, LayerItem, LayerMaintainer, LayerBranch, LayerDependency, LayerNote, Update, LayerUpdate, Recipe, Machine, Distro, BBClass, BBAppend, RecipeChange, RecipeChangeset, ClassicRecipe, StaticBuildDep, DynamicBuildDep
+from layerindex.models import WRTemplate
 from datetime import datetime
 from django.views.generic import TemplateView, DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -379,6 +380,7 @@ class LayerDetailView(DetailView):
             context['layerbranch'] = layerbranch
             context['machines'] = layerbranch.machine_set.order_by('name')
             context['distros'] = layerbranch.distro_set.order_by('name')
+            context['wrtemplates'] = layerbranch.wrtemplate_set.order_by('name')
             context['appends'] = layerbranch.bbappend_set.order_by('filename')
             context['classes'] = layerbranch.bbclass_set.order_by('name')
             context['updates'] = LayerUpdate.objects.filter(layer=layerbranch.layer, branch=layerbranch.branch).order_by('-started')
@@ -789,6 +791,41 @@ class ClassSearchView(ListView):
         context['url_branch'] = self.kwargs['branch']
         context['this_url_name'] = resolve(self.request.path_info).url_name
         return context
+
+
+class WRTemplateSearchView(ListView):
+    context_object_name = 'wrtemplate_list'
+    paginate_by = 50
+
+    def get_queryset(self):
+        _check_url_branch(self.kwargs)
+        query_string = self.request.GET.get('q', '')
+        init_qs = WRTemplate.objects.filter(layerbranch__branch__name=self.kwargs['branch'])
+
+        if query_string.strip():
+            entry_query = simplesearch.get_query(query_string, ['name', 'description'])
+            return init_qs.filter(entry_query).order_by('layerbranch__layer', 'name')
+
+        if 'q' in self.request.GET:
+            return init_qs.order_by('layerbranch__layer', 'name')
+
+        # Be consistent with RecipeSearchView
+        return WRTemplate.objects.none()
+
+    def get_context_data(self, **kwargs):
+        context = super(WRTemplateSearchView, self).get_context_data(**kwargs)
+        context['search_keyword'] = self.request.GET.get('q', '')
+        context['url_branch'] = self.kwargs['branch']
+        context['this_url_name'] = resolve(self.request.path_info).url_name
+        return context
+
+
+class PlainTextListView(ListView):
+    def render_to_response(self, context):
+        "Returns a plain text response rendering of the template"
+        template = get_template(self.template_name)
+        return HttpResponse(template.render(Context(context)),
+                                 content_type='text/plain')
 
 class HistoryListView(ListView):
     context_object_name = "revisions"
