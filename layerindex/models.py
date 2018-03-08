@@ -107,6 +107,7 @@ class LayerItem(models.Model):
         ('B', 'Machine (BSP)'),
         ('S', 'Software'),
         ('D', 'Distribution'),
+        ('W', 'WRTemplates'),
         ('M', 'Miscellaneous'),
     )
     name = models.CharField('Layer name', max_length=40, unique=True, help_text='Name of the layer - must be unique and can only contain letters, numbers and dashes')
@@ -572,6 +573,33 @@ class Distro(models.Model):
 
     def __str__(self):
         return '%s (%s)' % (self.name, self.layerbranch.layer.name)
+
+class WRTemplate(models.Model):
+    layerbranch = models.ForeignKey(LayerBranch)
+    name = models.CharField(max_length=255)
+    description = models.CharField(max_length=255)
+
+    updated = models.DateTimeField(auto_now=True)
+
+    def vcs_web_url(self):
+        url = self.layerbranch.file_url(os.path.join('templates/'))
+        return url or ''
+
+    def __str__(self):
+        return '%s (%s)' % (self.name, self.layerbranch.layer.name)
+
+class WRTemplateFile(models.Model):
+    wrtemplate = models.ForeignKey(WRTemplate)
+    name = models.CharField(max_length=255)
+
+    updated = models.DateTimeField(auto_now=True)
+
+    def vcs_web_url(self):
+        url = self.wrtemplate.vcs_web_url(os.path.join(name))
+        return url or ''
+
+    def __str__(self):
+        return '%s (%s in %s)' % (self.name, self.wrtemplate.name, self.wrtemplate.layerbranch.layer.name)
 
 
 class BBAppend(models.Model):

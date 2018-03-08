@@ -110,6 +110,7 @@ def setup_layer(config_data, fetchdir, layerdir, layer, layerbranch):
 
 machine_conf_re = re.compile(r'conf/machine/([^/.]*).conf$')
 distro_conf_re = re.compile(r'conf/distro/([^/.]*).conf$')
+wrtemplate_conf_re = re.compile(r'templates/(.*)/((?:README|require|template.conf|image.inc|bsp-pkgs.conf|bsp-pkgs.inc))$')
 bbclass_re = re.compile(r'classes/([^/.]*).bbclass$')
 def detect_file_type(path, subdir_start):
     typename = None
@@ -132,6 +133,10 @@ def detect_file_type(path, subdir_start):
         if res:
             typename = 'distro'
             return (typename, None, res.group(1))
+        res = wrtemplate_conf_re.match(subpath)
+        if res:
+            typename = 'wrtemplate'
+            return (typename, res.group(1), res.group(2))
 
     if typename == 'recipe' or typename == 'bbappend':
         if subdir_start:

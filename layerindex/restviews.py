@@ -1,4 +1,5 @@
 from layerindex.models import Branch, LayerItem, LayerMaintainer, YPCompatibleVersion, LayerNote, LayerBranch, LayerDependency, Recipe, Machine, Distro, BBClass
+from layerindex.models import WRTemplate
 from rest_framework import viewsets, serializers
 from layerindex.querysethelper import params_to_queryset, get_search_tuple
 
@@ -150,3 +151,10 @@ class LayerViewSet(ParametricSearchableModelViewSet):
     queryset = LayerBranch.objects.filter(layer__status__in=['P', 'X'])
     serializer_class = LayerSerializer
 
+class WRTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WRTemplate
+
+class WRTemplateViewSet(ParametricSearchableModelViewSet):
+    queryset = WRTemplate.objects.all()
+    serializer_class = WRTemplateSerializer
