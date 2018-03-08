@@ -4,3 +4,6 @@ tmp
 layers
 __pycache__
 *.pyc
+docker/docker-compose.yaml
+Dockerfile
+Dockerfile.web

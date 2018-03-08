@@ -1,0 +1,50 @@
+# Layerindex using docker-compose
+
+The layerindex-web application relies on many other pieces of software
+and it can be difficult to setup the full stack for development and
+testing. Using docker-compose simplifies the setup of all the
+supporting software for the layerindex-web:
+- The MariaDB database
+- RabbitMQ used to handle async tasks using Celery
+- Nginx reverse proxy for TLS and serving static files
+
+## How to build layerindex-web image
+
+    > git clone https://git.yoctoproject.org/git/layerindex-web
+    > cd layerindex-web
+    > docker build -t yocto/layerindex-app .
+
+## How to run
+
+Install docker and docker-compose following instructions here:
+
+https://docs.docker.com/compose/install/
+
+The following command will download missing images, run all the
+containers and connect them together. When Ctrl-C is pressed the
+containers and the temporary volumes will be cleaned up.
+
+    > cd docker
+    > docker-compose up --abort-on-container-exit; docker-compose rm --force -v
+
+## Exporting an existing database
+
+Upgrading layerindex releases has included model changes. To avoid
+problems on the import, non critical data is dropped from the database.
+
+    > python3 /opt/layerindex/manage.py dumpdata --exclude=contenttypes \
+      --exclude=auth.Permission --exclude=corsheaders --exclude=reversion.version \
+      --exclude=reversion.revision --exclude=captcha.captchastore \
+      --exclude=sessions.session --exclude=layerindex.layerupdate
+
+## Importing a database
+
+    > docker exec -it -u 500 docker_layerindex_1 \
+      curl -o /opt/latest.json.gz <source>
+    > docker exec -it -u 500 docker_layerindex_1 \
+      python3 /opt/layerindex/manage.py loaddata /opt/latest.json.gz
+
+This can take a long time depending on the size of the database.
+
+    > docker exec -it -u 500 docker_layerindex_1 \
+      python3 /opt/layerindex/manage.py update -r
