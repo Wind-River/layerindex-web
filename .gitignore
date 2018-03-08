@@ -1,4 +1,13 @@
 *.pyc
 *.db3
 *.swp
+.#*
 venv/
+.venv/
+.check
+layerindex_db.sqlite3
+layerindex_db.sqlite3-journal
+layerindex/tmp
+tmp
+bitbake.lock
+layerindex/fixtures/*

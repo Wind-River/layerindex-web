@@ -4,19 +4,23 @@
 # Copyright (c) Django Software Foundation and individual contributors.
 
 DEBUG = False
+TEMPLATE_DEBUG = DEBUG
+ALLOWED_HOSTS = ['*']
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('Konrad Scherer', 'Konrad.Scherer@windriver.com'),
+    ('Mark Hatle', 'Mark.Hatle@windriver.com'),
+    ('Robert', 'liezhi.yang@windriver.com'),
 )
 
 MANAGERS = ADMINS
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-        'NAME': '',                      # Or path to database file if using sqlite3 (full path recommended).
-        'USER': '',                      # Not used with sqlite3.
-        'PASSWORD': '',                  # Not used with sqlite3.
+        'ENGINE': 'django.db.backends.mysql', # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+        'NAME': 'layerindex',                 # Or path to database file if using sqlite3 (full path recommended).
+        'USER': 'oelayer',                    # Not used with sqlite3.
+        'PASSWORD': 'oelayer',                # Not used with sqlite3.
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
@@ -29,13 +33,14 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'Europe/London'
+#TIME_ZONE = None
+USE_TZ = True
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = 1
+SITE_ID = 2
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -66,12 +71,12 @@ STATIC_ROOT = ''
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/static/'
+STATIC_URL = '/layerindex/static/'
 
 # URL prefix for admin static files -- CSS, JavaScript and images.
 # Make sure to use a trailing slash.
 # Examples: "http://foo.com/static/admin/", "/static/admin/".
-ADMIN_MEDIA_PREFIX = '/static/admin/'
+ADMIN_MEDIA_PREFIX = '/layerindex/static/admin/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -89,7 +94,7 @@ STATICFILES_FINDERS = (
 )
 
 # Make this unique, and don't share it with anybody.
-SECRET_KEY = ''
+SECRET_KEY = 'b9480d70-80d1-11e6-a35d-5f30d8e86a21'
 
 MIDDLEWARE_CLASSES = (
     'corsheaders.middleware.CorsMiddleware',
@@ -197,39 +202,42 @@ MESSAGE_TAGS = {
 
 # Registration settings
 ACCOUNT_ACTIVATION_DAYS = 2
-EMAIL_HOST = 'smtp.example.com'
-DEFAULT_FROM_EMAIL = 'noreply@example.com'
+EMAIL_HOST = 'prod-webmail.wrs.com'
+DEFAULT_FROM_EMAIL = 'Konrad.Scherer@windriver.com'
 LOGIN_REDIRECT_URL = '/layerindex'
 
 # Full path to directory where layers should be fetched into by the update script
-LAYER_FETCH_DIR = ""
+LAYER_FETCH_DIR = "/home/oelayer/layerindex"
 
 # Base temporary directory in which to create a directory in which to run BitBake
 TEMP_BASE_DIR = "/tmp"
 
 # Fetch URL of the BitBake repository for the update script
-BITBAKE_REPO_URL = "git://git.openembedded.org/bitbake"
+BITBAKE_REPO_URL = "git://ala-git.wrs.com/bitbake"
 
 # Core layer to be used by the update script for basic BitBake configuration
 CORE_LAYER_NAME = "openembedded-core"
 
 # Update records older than this number of days will be deleted every update
-UPDATE_PURGE_DAYS = 30
+UPDATE_PURGE_DAYS = 10
 
 # Remove layer dependencies that are not specified in conf/layer.conf
-REMOVE_LAYER_DEPENDENCIES = False
+REMOVE_LAYER_DEPENDENCIES = True
 
 # Always use https:// for review URLs in emails (since it may be redirected to
 # the login page)
 FORCE_REVIEW_HTTPS = False
 
 # Settings for layer submission feature
-SUBMIT_EMAIL_FROM = 'noreply@example.com'
-SUBMIT_EMAIL_SUBJECT = 'OE Layerindex layer submission'
+SUBMIT_EMAIL_FROM = 'Konrad.Scherer@windriver.com'
+SUBMIT_EMAIL_SUBJECT = 'Wind River Linux Layerindex layer submission'
 
 # RabbitMQ settings
-RABBIT_BROKER = 'amqp://'
+RABBIT_BROKER = 'amqp://admin:mypass@localhost:5672/vhost'
 RABBIT_BACKEND = 'rpc://'
+
+# Support a proxy location
+FORCE_SCRIPT_NAME = '/layerindex'
 
 # Used for fetching repo
 PARALLEL_JOBS = "4"
