@@ -1,0 +1,123 @@
+# Copyright (c) 2017 Wind River Systems Inc.
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+version: '3.1'
+services:
+  rproxy:
+    image: blacklabelops/nginx:${RPROXY_TAG:-latest}
+    ports:
+      - "443:443"
+    links:
+      - layerindex
+    environment:
+      SERVER1HTTPS_ENABLED: "true"
+      SERVER1HTTP_ENABLED: "false"
+      SERVER1REVERSE_PROXY_LOCATION1: "/"
+      SERVER1REVERSE_PROXY_DISABLE_RESOLVER1: "true"
+      SERVER1REVERSE_PROXY_PASS1: "http://layerindex:5000/"
+      SERVER1REVERSE_PROXY_APPLICATION1: "custom"
+      SERVER1REVERSE_PROXY_HEADER1FIELD1: 'Host $$http_host'
+      SERVER1REVERSE_PROXY_HEADER1FIELD2: 'X-Forwarded-For $$proxy_add_x_forwarded_for'
+      SERVER1REVERSE_PROXY_HEADER1FIELD3: 'X-Forwarded-Host $$host'
+      SERVER1REVERSE_PROXY_HEADER1FIELD4: 'X-Forwarded-Proto $$scheme'
+      SERVER1REVERSE_PROXY_DIRECTIVE1FIELD1: 'proxy_redirect off'
+      SERVER1REVERSE_PROXY_DIRECTIVE1FIELD2: 'proxy_buffers 16 16k'
+      SERVER1REVERSE_PROXY_DIRECTIVE1FIELD3: 'proxy_buffer_size 16k'
+      SERVER1REVERSE_PROXY_LOCATION2: "/static/"
+      SERVER1REVERSE_PROXY_APPLICATION2: "custom"
+      SERVER1REVERSE_PROXY_DISABLE_RESOLVER2: "true"
+      SERVER1REVERSE_PROXY_DIRECTIVE2FIELD1: 'alias /var/lib/nginx/html/static/'
+      SERVER1REVERSE_PROXY_DIRECTIVE2FIELD2: 'autoindex on'
+      SERVER1CERTIFICATE_DNAME: "/CN=Yocto/OU=Linux/O=yoctoproject.org/L=SanFrancisco/C=US/emailAddress=root@localhost"
+      NGINX_REDIRECT_PORT80: "true"
+      DISABLE_ACCESS_LOG: "true"
+      LOG_LEVEL: "warn"
+    tmpfs:
+      - /tmp
+    volumes:
+      # Volume avoids recreating certs on every run
+      - rproxy_nginx_keys:/etc/nginx/keys
+      # Use Docker volume to share static files from layerindex into nginx
+      - layerindex_static:/var/lib/nginx/html/static
+
+  layerindex:
+    image: yocto/layerindex-app
+    hostname: layerindex
+    environment:
+      LAYERINDEX_INIT: "yes"
+      LAYERINDEX_ADMIN: "admin"
+      LAYERINDEX_ADMIN_EMAIL: "admin@localhost"
+      LAYERINDEX_ADMIN_PASS: "admin"
+    depends_on:
+      - mariadb
+      - rabbit
+    links:
+      - mariadb
+      - rabbit
+    tmpfs:
+      - /tmp:exec
+    volumes:
+      # uncomment the following line to make layerindex development easier
+      # - $PWD/../:/opt/layerindex
+      - ./mariadb_settings.py:/opt/layerindex/settings.py
+      - layer_cache:/opt/layers
+      - layerindex_static:/opt/layerindex/layerindex/static
+
+  celery-worker:
+    image: yocto/layerindex-app
+    hostname: celery-worker
+    environment:
+      RUN_CELERY: "true"
+    depends_on:
+      - rabbit
+    links:
+      - rabbit
+    tmpfs:
+      - /tmp:exec
+    volumes:
+      - ./mariadb_settings.py:/opt/layerindex/settings.py
+
+  mariadb:
+    image: mariadb
+    # Enable UTF-8 for tables
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'layerindex'
+      MYSQL_USER: 'oelayer'
+      MYSQL_PASSWORD: 'oelayer'
+      LANG: 'en_US.UTF-8'
+    tmpfs:
+      - /tmp:exec
+    volumes:
+      - layerindex_db:/var/lib/mysql
+
+  rabbit:
+    hostname: rabbit
+    image: rabbitmq:3.6-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=mypass
+
+volumes:
+  rproxy_nginx_keys:
+  layer_cache:
+  layerindex_static:
+  layerindex_db:
