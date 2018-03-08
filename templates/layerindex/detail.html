@@ -207,6 +207,9 @@
             {% if updates.count > 0 %}
                 <li><a href="#updates" data-toggle="tab">Updates</a></li>
             {% endif %}
+            {% if wrtemplates.count > 0 %}
+                <li><a href="#wrtemplates" data-toggle="tab">wrtemplates</a></li>
+            {% endif %}
         </ul>
 
         <div class="tab-content">
@@ -328,6 +331,26 @@
                                 <tr>
                                     <td><a href="{{ distro.vcs_web_url }}">{{ distro.name }}</a></td>
                                     <td>{{ distro.description }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+            {% if wrtemplates.count > 0 %}
+                <div class="tab-pane" id="wrtemplates">
+                    <div class="navbar">
+                        <div class="navbar-inner">
+                                <a class="brand pull-left">{{ layeritem.name }} wrtemplates</a>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered">
+                        <tbody>
+                            {% for wrtemplate in wrtemplates %}
+                                <tr>
+                                    <td><a href="{{ wrtemplate.vcs_web_url }}">{{ wrtemplate.name }}</a></td>
+                                    <td>{{ wrtemplate.description }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>

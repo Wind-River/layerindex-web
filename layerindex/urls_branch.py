@@ -8,6 +8,7 @@ from django.conf.urls import *
 from django.views.defaults import page_not_found
 from django.core.urlresolvers import reverse_lazy
 from layerindex.views import LayerListView, RecipeSearchView, MachineSearchView, DistroSearchView, ClassSearchView, LayerDetailView, edit_layer_view, delete_layer_view, edit_layernote_view, delete_layernote_view, RedirectParamsView, DuplicatesView, LayerUpdateDetailView, layer_export_recipes_csv_view, comparison_update_view
+from layerindex.views import PlainTextListView, WRTemplateSearchView
 
 urlpatterns = [
     url(r'^$', 
@@ -39,6 +40,10 @@ urlpatterns = [
         ClassSearchView.as_view(
             template_name='layerindex/classes.html'),
             name='class_search'),
+    url(r'^wrtemplates/$',
+        WRTemplateSearchView.as_view(
+            template_name='layerindex/wrtemplates.html'),
+            name='wrtemplate_search'),
     url(r'^edit/(?P<slug>[-\w]+)/$', edit_layer_view, {'template_name': 'layerindex/editlayer.html'}, name="edit_layer"),
     url(r'^duplicates/$',
         DuplicatesView.as_view(
