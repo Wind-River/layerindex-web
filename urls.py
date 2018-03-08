@@ -26,5 +26,5 @@ if 'rrs' in settings.INSTALLED_APPS:
     ]
 
 urlpatterns += [
-    url(r'.*', RedirectView.as_view(url='/layerindex/', permanent=False)),
+    url(r'.*', RedirectView.as_view(url='layerindex/', permanent=False)),
 ]
