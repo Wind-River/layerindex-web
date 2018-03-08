@@ -1,40 +1,64 @@
-FROM buildpack-deps:latest
+FROM debian:stretch
 MAINTAINER Michael Halstead <mhalstead@linuxfoundation.org>
 
 EXPOSE 80
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1 \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8 \
+    LC_CTYPE=en_US.UTF-8
+
 ## Uncomment to set proxy ENVVARS within container
 #ENV http_proxy http://your.proxy.server:port
 #ENV https_proxy https://your.proxy.server:port
 
-RUN apt-get update
-RUN apt-get install -y --no-install-recommends \
-	python-pip \
-	python-mysqldb \
-	python-dev \
-	python-imaging \
-	rabbitmq-server \
-	netcat-openbsd \
-	vim \
-	&& rm -rf /var/lib/apt/lists/*
-RUN pip install --upgrade pip
-RUN pip install gunicorn
-RUN pip install setuptools
-CMD mkdir /opt/workdir
+ADD requirements.txt /
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+      autoconf \
+      g++ \
+      gcc \
+      make \
+      python3-pip \
+      python3-dev \
+      python3-pil \
+      python3-mysqldb \
+      python3-setuptools \
+      netcat-openbsd \
+      libjpeg-dev \
+      vim git curl locales libmariadbclient-dev \
+    && echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen \
+    && locale-gen en_US.UTF-8 \
+    && update-locale \
+    && mkdir /opt/workdir \
+    && pip3 install wheel gunicorn \
+    && pip3 install -r /requirements.txt \
+    && apt-get purge -y g++ make python3-dev autoconf libmariadbclient-dev \
+    && apt-get autoremove -y \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && groupadd user \
+    && useradd --create-home --home-dir /home/user -g user user
+
 ADD . /opt/layerindex
-RUN pip install -r /opt/layerindex/requirements.txt
-ADD settings.py /opt/layerindex/settings.py
+
+# Copy static resouces to static dir so they can be served by nginx
+RUN rm -f /opt/layerindex/layerindex/static/admin \
+    && cp -r /usr/local/lib/python3.5/dist-packages/django/contrib/admin/static/admin/ \
+        /opt/layerindex/layerindex/static/ \
+    && rm -f /opt/layerindex/layerindex/static/rest_framework \
+    && cp -r /usr/local/lib/python3.5/dist-packages/rest_framework/static/rest_framework/ \
+        /opt/layerindex/layerindex/static/ \
+    && chown -R user:user /opt/layerindex \
+    && mkdir /opt/layers && chown -R user:user /opt/layers
+
 ADD docker/updatelayers.sh /opt/updatelayers.sh
 ADD docker/migrate.sh /opt/migrate.sh
 
-## Uncomment to add a .gitconfig file within container
-#ADD docker/.gitconfig /root/.gitconfig
-## Uncomment to add a proxy script within container, if you choose to
-## do so, you will also have to edit .gitconfig appropriately
-#ADD docker/git-proxy /opt/bin/git-proxy
+# Add entrypoint to start celery worker and gnuicorn
+ADD docker/entrypoint.sh /entrypoint.sh
 
-# Start Gunicorn
-CMD ["/usr/local/bin/gunicorn", "wsgi:application", "--workers=4", "--bind=:5000", "--log-level=debug", "--chdir=/opt/layerindex"]
+# Run gunicorn and celery as unprivileged user
+USER user
 
-# Start Celery
-CMD ["/usr/local/bin/celery", "-A", "layerindex.tasks", "worker", "--loglevel=info", "--workdir=/opt/layerindex"]
+ENTRYPOINT ["/entrypoint.sh"]
