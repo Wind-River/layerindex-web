@@ -108,14 +108,14 @@ ifndef SETTINGS
 	$(eval SETTINGS=settings)
 endif
 	mysql -u root -p < db_init.sql; \
-	$(VENV)/bin/python3 manage.py syncdb --settings $(SETTINGS);
+	$(VENV)/bin/python3 manage.py migrate --settings $(SETTINGS);
 
 db_reinit: $(VENV) ## Drop and recreate database. Assume oelayer user already exists.
 ifndef SETTINGS
 	$(eval SETTINGS=settings)
 endif
 	mysql -u root -p < db_reinit.sql; \
-	$(VENV)/bin/python3 manage.py syncdb --settings $(SETTINGS);
+	$(VENV)/bin/python3 manage.py migrate --settings $(SETTINGS);
 
 backup: $(VENV) ## Generate a dump of the entire db as a backup strategy
 ifndef SETTINGS

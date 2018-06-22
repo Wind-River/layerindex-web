@@ -154,6 +154,7 @@ class LayerViewSet(ParametricSearchableModelViewSet):
 class WRTemplateSerializer(serializers.ModelSerializer):
     class Meta:
         model = WRTemplate
+        fields = '__all__'
 
 class WRTemplateViewSet(ParametricSearchableModelViewSet):
     queryset = WRTemplate.objects.all()
