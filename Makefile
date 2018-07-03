@@ -123,8 +123,9 @@ ifndef SETTINGS
 endif
 	$(eval BACKUP=$(HOME)/db-backup/wrl-layerindex.$(shell date +\%Y_\%m_\%d-\%H\%M\%S).json)
 	mkdir -p $(HOME)/db-backup; \
-	$(VENV)/bin/python3 manage.py dumpdata --settings $(SETTINGS) --exclude=contenttypes --exclude=auth.Permission > $(BACKUP); \
-	gzip $(HOME)/db-backup/*.json
+	$(VENV)/bin/python3 manage.py dumpdata --settings $(SETTINGS) --exclude=contenttypes --exclude=auth.Permission --exclude=corsheaders > $(BACKUP); \
+	gzip $(HOME)/db-backup/*.json; \
+	ln -sfr $(BACKUP).gz $(HOME)/db-backup/latest.json.gz
 
 clone_branch: $(VENV) ## Clone an existing branch with a new name and description
 ifndef SETTINGS
