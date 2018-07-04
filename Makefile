@@ -123,7 +123,7 @@ ifndef SETTINGS
 endif
 	$(eval BACKUP=$(HOME)/db-backup/wrl-layerindex.$(shell date +\%Y_\%m_\%d-\%H\%M\%S).json)
 	mkdir -p $(HOME)/db-backup; \
-	$(VENV)/bin/python3 manage.py dumpdata --settings $(SETTINGS) --exclude=contenttypes --exclude=auth.Permission --exclude=corsheaders > $(BACKUP); \
+	$(VENV)/bin/python3 manage.py dumpdata --settings $(SETTINGS) --exclude=contenttypes --exclude=auth.Permission --exclude=corsheaders --exclude=reversion.version --exclude=reversion.revision --exclude=captcha.captchastore --exclude=sessions.session > $(BACKUP); \
 	gzip $(HOME)/db-backup/*.json; \
 	ln -sfr $(BACKUP).gz $(HOME)/db-backup/latest.json.gz
 
