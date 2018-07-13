@@ -29,4 +29,5 @@ fi
 /usr/local/bin/gunicorn wsgi:application --workers="${GUNICORN_NUM_WORKERS:-4}" \
                         --bind="${GUNICORN_BIND:-:5000}" \
                         --log-level="${GUNICORN_LOG_LEVEL:-debug}" \
+                        --pid /tmp/gunicorn.pid \
                         --chdir=/opt/layerindex
