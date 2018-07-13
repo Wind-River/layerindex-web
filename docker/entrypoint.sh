@@ -15,7 +15,7 @@ fi
                       --workdir=/opt/layerindex &
 
 echo "Waiting for database to come online"
-for i in {15..1}; do echo -n "$i." && sleep 1; done; echo
+for i in $(seq 1 1 "${STARTUP_DELAY:-10}"); do echo -n "$i." && sleep 1; done; echo
 
 if [ "$LAYERINDEX_INIT" == "yes" ]; then
     python3 manage.py migrate

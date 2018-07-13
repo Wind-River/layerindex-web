@@ -37,10 +37,10 @@ RUN apt-get update \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean \
-    && groupadd user \
-    && useradd --create-home --home-dir /home/user -g user user
+    && groupadd -g 500 user \
+    && useradd --uid=500 --create-home --home-dir /home/user -g user user
 
-ADD . /opt/layerindex
+ADD --chown 500:500 . /opt/layerindex
 
 # Copy static resouces to static dir so they can be served by nginx
 RUN rm -f /opt/layerindex/layerindex/static/admin \
@@ -49,7 +49,6 @@ RUN rm -f /opt/layerindex/layerindex/static/admin \
     && rm -f /opt/layerindex/layerindex/static/rest_framework \
     && cp -r /usr/local/lib/python3.5/dist-packages/rest_framework/static/rest_framework/ \
         /opt/layerindex/layerindex/static/ \
-    && chown -R user:user /opt/layerindex \
     && mkdir /opt/layers && chown -R user:user /opt/layers
 
 ADD docker/updatelayers.sh /opt/updatelayers.sh
