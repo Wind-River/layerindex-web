@@ -40,7 +40,7 @@ RUN apt-get update \
     && groupadd -g 500 user \
     && useradd --uid=500 --create-home --home-dir /home/user -g user user
 
-ADD --chown 500:500 . /opt/layerindex
+ADD --chown=500:500 . /opt/layerindex
 
 # Copy static resouces to static dir so they can be served by nginx
 RUN rm -f /opt/layerindex/layerindex/static/admin \
