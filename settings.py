@@ -213,7 +213,7 @@ LAYER_FETCH_DIR = "/home/oelayer/layerindex"
 TEMP_BASE_DIR = "/tmp"
 
 # Fetch URL of the BitBake repository for the update script
-BITBAKE_REPO_URL = "git://ala-git.wrs.com/bitbake"
+BITBAKE_REPO_URL = "git://lxgit.wrs.com/bitbake"
 
 # Core layer to be used by the update script for basic BitBake configuration
 CORE_LAYER_NAME = "openembedded-core"
