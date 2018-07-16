@@ -33,7 +33,7 @@ RUN apt-get update \
     && mkdir /opt/workdir \
     && pip3 install wheel gunicorn \
     && pip3 install -r /requirements.txt \
-    && apt-get purge -y autoconf g++ gcc make python3-dev libjpeg-dev libmariadbclient-dev \
+    && apt-get purge -y autoconf g++ make python3-dev libjpeg-dev libmariadbclient-dev \
     && apt-get autoremove -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean \
