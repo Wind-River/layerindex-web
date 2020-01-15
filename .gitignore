@@ -2,7 +2,16 @@
 *.db3
 *.swp
 .pytest_cache
+.#*
 venv/
+.venv/
+.check
+layerindex_db.sqlite3
+layerindex_db.sqlite3-journal
+layerindex/tmp
+tmp
+bitbake.lock
+layerindex/fixtures/*
 *.sql
 *.sql.gz
 static/

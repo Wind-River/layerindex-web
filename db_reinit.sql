@@ -1,0 +1,4 @@
+DROP DATABASE layerindex;
+CREATE DATABASE layerindex CHARACTER SET UTF8;
+GRANT ALL PRIVILEGES ON layerindex.* TO oelayer@localhost;
+FLUSH PRIVILEGES;
