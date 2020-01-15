@@ -5,6 +5,7 @@
 # Licensed under the MIT license, see COPYING.MIT for details
 
 from layerindex.models import Branch, LayerItem, LayerMaintainer, YPCompatibleVersion, LayerNote, LayerBranch, LayerDependency, Recipe, Machine, Distro, BBClass, Source, Patch, PackageConfig, StaticBuildDep, DynamicBuildDep, RecipeFileDependency, BBAppend, IncFile
+from layerindex.models import WRTemplate
 from rest_framework import viewsets, serializers, pagination
 from layerindex.querysethelper import params_to_queryset, get_search_tuple
 
@@ -241,3 +242,11 @@ class IncFileViewSet(ParametricSearchableModelViewSet):
     queryset = IncFile.objects.all()
     serializer_class = IncFileSerializer
 
+class WRTemplateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WRTemplate
+        fields = '__all__'
+
+class WRTemplateViewSet(ParametricSearchableModelViewSet):
+    queryset = WRTemplate.objects.all()
+    serializer_class = WRTemplateSerializer

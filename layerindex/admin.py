@@ -220,6 +220,33 @@ class SiteAdmin(admin.ModelAdmin):
     list_display_links = ('name',)
     search_fields = ('name', 'domain')
 
+class WRTemplateFileInline(admin.TabularInline):
+    model = WRTemplateFile
+    can_delete = False
+    readonly_fields = ['name']
+    def has_add_permission(self, request):
+        return False
+
+class WRTemplateAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    list_filter = ['layerbranch__layer__name', 'layerbranch__branch__name']
+    readonly_fields = [field.name for field in WRTemplate._meta.get_fields() if field.name != 'wrtemplatefile']
+    inlines = [ WRTemplateFileInline ]
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+class WRTemplateFileAdmin(admin.ModelAdmin):
+    search_fields = ['name']
+    list_filter = ['wrtemplate__name']
+    readonly_fields = [field.name for field in WRTemplateFile._meta.get_fields()]
+    def has_add_permission(self, request, obj=None):
+        return False
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 admin.site.unregister(Site)
 admin.site.register(Site, SiteAdmin)
 admin.site.register(Branch, BranchAdmin)
@@ -240,6 +267,8 @@ admin.site.register(Recipe, RecipeAdmin)
 admin.site.register(RecipeFileDependency)
 admin.site.register(Machine, MachineAdmin)
 admin.site.register(Distro, DistroAdmin)
+admin.site.register(WRTemplate, WRTemplateAdmin)
+admin.site.register(WRTemplateFile, WRTemplateFileAdmin)
 admin.site.register(BBAppend, BBAppendAdmin)
 admin.site.register(BBClass, BBClassAdmin)
 admin.site.register(IncFile, IncFileAdmin)
