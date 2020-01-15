@@ -35,6 +35,7 @@ router.register(r'distros', restviews.DistroViewSet)
 router.register(r'classes', restviews.ClassViewSet)
 router.register(r'layers', restviews.LayerViewSet, 'layers')
 router.register(r'wrtemplates', restviews.WRTemplateViewSet)
+router.register(r'YPCompatibleVersions', restviews.YPCompatibleVersionViewSet)
 router.register(r'appends', restviews.AppendViewSet)
 router.register(r'incFiles', restviews.IncFileViewSet)
 

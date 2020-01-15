@@ -199,6 +199,10 @@ class YPCompatibleVersionSerializer(serializers.ModelSerializer):
         model = YPCompatibleVersion
         fields = '__all__'
 
+class YPCompatibleVersionViewSet(ParametricSearchableModelViewSet):
+    queryset = YPCompatibleVersion.objects.all()
+    serializer_class = YPCompatibleVersionSerializer
+
 class LayerSerializer(serializers.ModelSerializer):
     """
     A more fleshed-out LayerBranch serializer for external applications
