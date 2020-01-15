@@ -127,6 +127,13 @@ def extract_value(valuename, output):
     else:
         return ''
 
+def delete_dangling_ypcompatibleversion():
+    from layerindex.models import LayerBranch, YPCompatibleVersion
+
+    for ypcv in YPCompatibleVersion.objects.all():
+        if not LayerBranch.objects.filter(yp_compatible_version=ypcv):
+            ypcv.delete()
+
 def main():
     if LooseVersion(git.__version__) < '0.3.1':
         logger.error("Version of GitPython is too old, please install GitPython (python-git) 0.3.1 or later in order to use this script")
@@ -590,6 +597,8 @@ def main():
             update.save()
 
     if not options.dryrun:
+        delete_dangling_ypcompatibleversion()
+
         # Purge old update records
         update_purge_days = getattr(settings, 'UPDATE_PURGE_DAYS', 30)
         Update.objects.filter(started__lte=datetime.now()-timedelta(days=update_purge_days)).delete()

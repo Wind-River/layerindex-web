@@ -276,6 +276,26 @@ def update_wrtemplate_files(wrtemplate, filename):
 
     wrtemplatefile.save()
 
+def get_yp_compatible_version(layer_config_data):
+    vers = utils.get_layer_var(layer_config_data, 'LAYERSERIES_COMPAT', logger)
+    if not vers:
+        return None;
+
+    vers = vers.split()
+    vers.sort()
+    vers = ' '.join(vers)
+
+    from layerindex.models import YPCompatibleVersion
+    ypcv = YPCompatibleVersion.objects.filter(name=vers)
+    if ypcv:
+        ypcv = ypcv[0]
+    else:
+        ypcv = YPCompatibleVersion()
+        ypcv.name = vers
+        ypcv.save()
+
+    return ypcv
+
 def main():
     if LooseVersion(git.__version__) < '0.3.1':
         logger.error("Version of GitPython is too old, please install GitPython (python-git) 0.3.1 or later in order to use this script")
@@ -331,7 +351,7 @@ def main():
 
     utils.setup_django()
     import settings
-    from layerindex.models import LayerItem, LayerBranch, Recipe, RecipeFileDependency, Machine, Distro, WRTemplate, WRTemplateFile, BBAppend, BBClass, IncFile
+    from layerindex.models import LayerItem, LayerBranch, Recipe, RecipeFileDependency, Machine, Distro, WRTemplate, WRTemplateFile, BBAppend, BBClass, IncFile, YPCompatibleVersion
     from django.db import transaction
 
     logger.setLevel(options.loglevel)
@@ -457,6 +477,7 @@ def main():
                     logger.warn('Failed to find lib/oe/recipeutils.py in layers - patch information will not be collected')
                     skip_patches = True
 
+                layerbranch.yp_compatible_version = get_yp_compatible_version(layer_config_data)
                 utils.add_dependencies(layerbranch, layer_config_data, logger=logger)
                 utils.add_recommends(layerbranch, layer_config_data, logger=logger)
                 layerbranch.save()
