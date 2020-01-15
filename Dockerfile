@@ -16,7 +16,7 @@ ENV PYTHONUNBUFFERED=1 \
 
 COPY requirements.txt /
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 	autoconf \
 	g++ \
 	gcc \
@@ -44,16 +44,20 @@ RUN apt-get update \
 	&& locale-gen en_US.UTF-8 \
 	&& update-locale \
     && pip3 install gunicorn \
-    && pip install setuptools \
-    && pip3 install setuptools \
+    && pip install setuptools wheel \
+    && pip3 install setuptools wheel \
     && pip install -r /requirements.txt \
     && pip3 install -r /requirements.txt \
     && apt-get purge -y autoconf g++ make python-dev python3-dev libjpeg-dev libmariadbclient-dev \
 	&& apt-get autoremove -y \
 	&& rm -rf /var/lib/apt/lists/* \
-	&& apt-get clean
+    && apt-get clean \
+    && mkdir /opt/workdir \
+    && adduser --system --uid=500 layers \
+    && mkdir /opt/layers \
+    && chown -R layers /opt/
 
-COPY . /opt/layerindex
+ADD --chown=500 . /opt/layerindex
 RUN rm -rf /opt/layerindex/docker
 COPY docker/settings.py /opt/layerindex/settings.py
 COPY docker/refreshlayers.sh /opt/refreshlayers.sh
@@ -61,14 +65,13 @@ COPY docker/updatelayers.sh /opt/updatelayers.sh
 COPY docker/migrate.sh /opt/migrate.sh
 COPY docker/connectivity_check.sh /opt/connectivity_check.sh
 
-RUN mkdir /opt/workdir \
-	&& adduser --system --uid=500 layers \
-	&& chown -R layers /opt/workdir
 USER layers
 
 # Always copy in .gitconfig and proxy helper script (they need editing to be active)
 COPY docker/.gitconfig /home/layers/.gitconfig
 COPY docker/git-proxy /opt/bin/git-proxy
 
-# Start Gunicorn
-CMD ["/usr/local/bin/gunicorn", "wsgi:application", "--workers=4", "--bind=:5000", "--timeout=60", "--log-level=debug", "--chdir=/opt/layerindex"]
+# Add entrypoint to start celery worker and gnuicorn
+ADD docker/entrypoint.sh /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

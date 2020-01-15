@@ -12,3 +12,4 @@ Dockerfile
 Dockerfile.web
 docker-compose.yml
 dockersetup.py
+docker/docker-compose.yaml
