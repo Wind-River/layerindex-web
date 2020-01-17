@@ -12,7 +12,6 @@ layerindex/tmp
 tmp
 bitbake.lock
 layerindex/fixtures/*
-*.sql
 *.sql.gz
 static/
 layers/
