@@ -36,7 +36,7 @@ TIME_ZONE = 'US/Pacific'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
-SITE_ID = 1
+SITE_ID = 2
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
@@ -101,6 +101,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'layerindex.middleware.NonAtomicRevisionMiddleware',
     'reversion.middleware.RevisionMiddleware',
 )
 
@@ -154,10 +155,39 @@ INSTALLED_APPS = (
     'reversion',
     'reversion_compare',
     'captcha',
+    'axes',
     'rest_framework',
     'corsheaders',
+    'bootstrap_pagination',
     'django_nvd3'
 )
+
+AUTHENTICATION_BACKENDS = [
+    'axes.backends.AxesModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# Password validation
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+    {
+        'NAME': 'password_validation.ComplexityValidator',
+    },
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
@@ -212,6 +242,9 @@ TEMP_BASE_DIR = "/tmp"
 # Fetch URL of the BitBake repository for the update script
 BITBAKE_REPO_URL = "git://lxgit.wrs.com/bitbake"
 
+# Path within the BITBAKE_REPO_URL, usually empty
+BITBAKE_PATH = ""
+
 # Core layer to be used by the update script for basic BitBake configuration
 CORE_LAYER_NAME = "openembedded-core"
 
@@ -225,9 +258,15 @@ REMOVE_LAYER_DEPENDENCIES = True
 # the login page)
 FORCE_REVIEW_HTTPS = False
 
+# False to allow accounts without security questions to reset their password
+SECURITY_QUESTIONS_REQUIRED = True
+
 # Settings for layer submission feature
-SUBMIT_EMAIL_FROM = 'noreply@example.com'
-SUBMIT_EMAIL_SUBJECT = 'OE Layerindex layer submission'
+SUBMIT_EMAIL_FROM = 'Konrad.Scherer@windriver.com'
+SUBMIT_EMAIL_SUBJECT = 'Wind River Linux Layerindex layer submission'
+
+# Send email to maintainer(s) when their layer is published
+SEND_PUBLISH_EMAIL = True
 
 # RabbitMQ settings
 RABBIT_BROKER = 'amqp://admin:mypass@rabbit:5672'
@@ -240,6 +279,23 @@ CSRF_COOKIE_SECURE = True
 
 # Used for fetching repo
 PARALLEL_JOBS = "4"
+
+# Install flite & sox and set these to enable audio for CAPTCHA challenges (for accessibility)
+#CAPTCHA_FLITE_PATH = "/usr/bin/flite"
+#CAPTCHA_SOX_PATH = "/usr/bin/sox"
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+    },
+    'axes_cache': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
+AXES_CACHE = "axes_cache"
+AXES_LOCKOUT_TEMPLATE = "registration/account_lockout.html"
+AXES_FAILURE_LIMIT = 4
+AXES_COOLOFF_TIME = 1
 
 # Full path to directory where rrs tools stores logs
 TOOLS_LOG_DIR = ""
