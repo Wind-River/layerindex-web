@@ -895,7 +895,7 @@ class WRTemplateSearchView(ListView):
         init_qs = WRTemplate.objects.filter(layerbranch__branch__name=self.kwargs['branch'])
 
         if query_string.strip():
-            entry_query = simplesearch.get_query(query_string, ['name', 'description'])
+            entry_query = utils.string_to_query(query_string, ['name', 'description'])
             return init_qs.filter(entry_query).order_by('layerbranch__layer', 'name')
 
         if 'q' in self.request.GET:
