@@ -71,12 +71,12 @@ STATIC_ROOT = os.getenv('STATIC_ROOT', os.path.join(os.getcwd(), 'layerindex', '
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
-STATIC_URL = '/layerindex/static/'
+STATIC_URL = '/static/'
 
 # URL prefix for admin static files -- CSS, JavaScript and images.
 # Make sure to use a trailing slash.
 # Examples: "http://foo.com/static/admin/", "/static/admin/".
-ADMIN_MEDIA_PREFIX = '/layerindex/static/admin/'
+ADMIN_MEDIA_PREFIX = '/static/admin/'
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -232,7 +232,7 @@ MESSAGE_TAGS = {
 ACCOUNT_ACTIVATION_DAYS = 2
 EMAIL_HOST = 'prod-webmail.wrs.com'
 DEFAULT_FROM_EMAIL = 'Konrad.Scherer@windriver.com'
-LOGIN_REDIRECT_URL = '/layerindex'
+LOGIN_REDIRECT_URL = '/'
 
 # Full path to directory where layers should be fetched into by the update script
 LAYER_FETCH_DIR = "/home/oelayer/layerindex"
