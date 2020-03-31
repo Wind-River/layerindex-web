@@ -126,15 +126,15 @@ wrtemplate_conf_re = re.compile(r'templates/(.*)/((?:README|require|template.con
 bbclass_re = re.compile(r'classes/([^/.]*).bbclass$')
 def detect_file_type(path, subdir_start):
     typename = None
+    subpath = path[len(subdir_start):]
     if fnmatch.fnmatch(path, "*.bb"):
         typename = 'recipe'
     elif fnmatch.fnmatch(path, "*.bbappend"):
         typename = 'bbappend'
-    elif fnmatch.fnmatch(path, "*.inc"):
+    elif fnmatch.fnmatch(path, "*.inc") and not wrtemplate_conf_re.match(subpath):
         typename = 'incfile'
     else:
         # Check if it's a machine conf file
-        subpath = path[len(subdir_start):]
         res = machine_conf_re.match(subpath)
         if res:
             typename = 'machine'
